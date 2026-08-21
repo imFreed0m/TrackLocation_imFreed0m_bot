@@ -36,8 +36,8 @@
         .play-overlay .play-circle { width: 72px; height: 72px; background: rgba(255,0,0,0.85); border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: transform 0.2s, background 0.2s; }
         .play-overlay .play-circle:hover { transform: scale(1.1); background: rgba(255,0,0,1); }
         .play-overlay .play-circle svg { width: 32px; height: 32px; fill: #fff; margin-left: 4px; }
-        .play-overlay .lock-text { margin-top: 14px; font-size: 13px; color: rgba(255,255,255,0.85); background: rgba(0,0,0,0.6); padding: 6px 14px; border-radius: 20px; display: flex; align-items: center; gap: 6px; }
-        .play-overlay .lock-text svg { width: 14px; height: 14px; fill: currentColor; }
+        .play-overlay .lock-text { margin-top: 14px; font-size: 16px; font-weight: bold; color: #fff; background: rgba(0,0,0,0.85); padding: 8px 18px; border-radius: 20px; display: flex; align-items: center; gap: 8px; text-transform: uppercase; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
+        .play-overlay .lock-text svg { width: 16px; height: 16px; fill: currentColor; }
 
         /* Duration badge */
         .duration-badge { position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.8); color: #fff; font-size: 12px; font-weight: 600; padding: 2px 6px; border-radius: 4px; z-index: 1; }
@@ -73,8 +73,9 @@
         .error-overlay.active { display: flex; pointer-events: auto; }
         .error-overlay svg { width: 48px; height: 48px; fill: #ff4444; margin-bottom: 12px; }
         .error-overlay p { font-size: 14px; color: #ccc; text-align: center; max-width: 300px; line-height: 1.5; }
-        .error-overlay button { margin-top: 16px; background: #ff0000; color: #fff; border: none; padding: 10px 24px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; }
-        .error-overlay button:disabled { background: #555; cursor: not-allowed; }
+        .error-overlay button { margin-top: 16px; background: #ff0000; color: #fff; border: none; padding: 10px 24px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; transition: transform 0.1s; }
+        .error-overlay button:active { transform: scale(0.95); }
+        .error-overlay button:disabled { background: #555; cursor: not-allowed; transform: none; }
 
         /* Countdown timer */
         .countdown { font-size: 28px; font-weight: 700; color: #ff4444; margin: 12px 0 4px; font-variant-numeric: tabular-nums; }
