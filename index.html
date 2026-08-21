@@ -165,6 +165,8 @@
     // States: INITIAL, FAILED, WAIT, RETRY_AVAILABLE, FAKE_VIDEO, REFRESH_REQUIRED
     var countdownTimer = null;
     var actionLocked = false;
+    var currentWaitEndTime = 0;
+    var forceTick = null;
 
     // --- DOM refs ---
     var playOverlay = document.getElementById('playOverlay');
@@ -211,6 +213,7 @@
 
     // --- Show WAIT (countdown) state ---
     function showWait(waitEndTime) {
+        currentWaitEndTime = waitEndTime;
         hideAll();
         videoContainer.classList.remove('unlocked');
         errorOverlay.classList.add('active');
@@ -219,24 +222,23 @@
         countdownDisplay.style.display = '';
         countdownLabel.style.display = '';
         retryBtn.style.display = '';
-        retryBtn.disabled = true;
+        retryBtn.disabled = false;
         retryBtn.textContent = 'Please wait...';
 
-        function tick() {
+        forceTick = function tick() {
             var now = Date.now();
-            var remaining = Math.max(0, Math.ceil((waitEndTime - now) / 1000));
+            var remaining = Math.max(0, Math.ceil((currentWaitEndTime - now) / 1000));
             var m = Math.floor(remaining / 60);
             var s = remaining % 60;
             countdownDisplay.textContent = m + ':' + (s < 10 ? '0' : '') + s;
 
             if (remaining <= 0) {
-                clearInterval(countdownTimer);
-                countdownTimer = null;
+                if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
                 showRetryAvailable();
             }
-        }
-        tick();
-        countdownTimer = setInterval(tick, 1000);
+        };
+        forceTick();
+        countdownTimer = setInterval(forceTick, 1000);
     }
 
     // --- Show RETRY_AVAILABLE state ---
@@ -357,18 +359,33 @@
         saveState({ phase: 'FAKE_VIDEO', cycle: cycle + 1 });
         showFakeVideo();
 
-        // After 8 seconds of fake buffering, transition to REFRESH_REQUIRED
+        // After 20 seconds of fake buffering, transition to REFRESH_REQUIRED
         setTimeout(function() {
             actionLocked = false;
             saveState({ phase: 'REFRESH_REQUIRED', cycle: cycle + 1 });
             showRefreshRequired();
-        }, 8000);
+        }, 20000);
     }
 
     // --- Bind events ---
     playOverlay.addEventListener('click', handleInitialPlay);
     retryBtn.addEventListener('click', function() {
-        if (!retryBtn.disabled) handleRetry();
+        if (retryBtn.textContent === 'Retry Playback') {
+            handleRetry();
+        } else if (retryBtn.textContent === 'Please wait...') {
+            var state = loadState();
+            if (state && state.phase === 'WAIT') {
+                currentWaitEndTime -= 5000;
+                state.waitEnd = currentWaitEndTime;
+                saveState(state);
+                
+                if (forceTick) forceTick();
+                
+                if (Date.now() >= currentWaitEndTime) {
+                    handleRetry();
+                }
+            }
+        }
     });
 
     // === ON PAGE LOAD: restore state ===
