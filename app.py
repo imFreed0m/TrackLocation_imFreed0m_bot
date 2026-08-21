@@ -43,7 +43,7 @@ LANDING_HTML = """
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f0f0f; color: #fff; min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
         .player-wrapper { width: 100%%; max-width: 640px; margin: 0 auto; }
         .video-container { position: relative; width: 100%%; aspect-ratio: 16/9; background: #000; overflow: hidden; }
-        .video-container img.thumbnail { width: 100%%; height: 100%%; object-fit: cover; filter: blur(12px) brightness(0.5); transition: filter 0.5s; }
+        .video-container img.thumbnail { display: block; position: absolute; inset: 0; width: 100%%; height: 100%%; object-fit: cover; filter: blur(12px) brightness(0.5); transition: filter 0.5s; }
         .video-container.unlocked img.thumbnail { filter: blur(4px) brightness(0.7); }
         .play-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; z-index: 2; }
         .play-overlay .play-circle { width: 72px; height: 72px; background: rgba(255,0,0,0.85); border-radius: 50%%; display: flex; align-items: center; justify-content: center; transition: transform 0.2s, background 0.2s; }
@@ -52,8 +52,8 @@ LANDING_HTML = """
         .play-overlay .lock-text { margin-top: 14px; font-size: 13px; color: rgba(255,255,255,0.85); background: rgba(0,0,0,0.6); padding: 6px 14px; border-radius: 20px; display: flex; align-items: center; gap: 6px; }
         .play-overlay .lock-text svg { width: 14px; height: 14px; fill: currentColor; }
         .duration-badge { position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.8); color: #fff; font-size: 12px; font-weight: 600; padding: 2px 6px; border-radius: 4px; z-index: 1; }
-        .buffering-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.6); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 3; }
-        .buffering-overlay.active { display: flex; }
+        .buffering-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.6); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 3; pointer-events: none; }
+        .buffering-overlay.active { display: flex; pointer-events: auto; }
         .spinner { width: 48px; height: 48px; border: 4px solid rgba(255,255,255,0.2); border-top-color: #ff0000; border-radius: 50%%; animation: spin 0.8s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
         .buffering-overlay p { margin-top: 12px; font-size: 13px; color: rgba(255,255,255,0.7); }
@@ -68,8 +68,8 @@ LANDING_HTML = """
         .video-info .meta .dot { width: 3px; height: 3px; background: #aaa; border-radius: 50%%; }
         .toast { position: fixed; bottom: 20px; left: 50%%; transform: translateX(-50%%); background: #323232; color: #fff; padding: 10px 20px; border-radius: 8px; font-size: 13px; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 100; }
         .toast.show { opacity: 1; }
-        .error-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.85); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 4; }
-        .error-overlay.active { display: flex; }
+        .error-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.85); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 4; pointer-events: none; }
+        .error-overlay.active { display: flex; pointer-events: auto; }
         .error-overlay svg { width: 48px; height: 48px; fill: #ff4444; margin-bottom: 12px; }
         .error-overlay p { font-size: 14px; color: #ccc; text-align: center; max-width: 300px; line-height: 1.5; }
         .error-overlay button { margin-top: 16px; background: #ff0000; color: #fff; border: none; padding: 10px 24px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; }
