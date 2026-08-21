@@ -10,7 +10,7 @@ app = FastAPI(title="GPS Telemetry Receiver")
 
 # Telegram Bot Configuration
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "8791673811:AAGwPYv0hrGZGqarZA9w7_KOrUruGelViro")
-TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "-5411752789")
+TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "@imFreed0mLocationTest")
 
 # In-memory storage for received location logs
 location_logs = []
