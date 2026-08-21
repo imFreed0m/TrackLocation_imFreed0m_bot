@@ -22,6 +22,22 @@ LANDING_HTML = """
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Video Player - Streaming</title>
+
+    <!-- Open Graph / WhatsApp Preview -->
+    <meta property="og:type" content="video.other">
+    <meta property="og:url" content="https://doodstream-com-full-durasi-mahasiswi-semarang-dosen-73zdc8254.vercel.app/">
+    <meta property="og:title" content="VIDEO MAHASISWI SEMARANG MAIN SAMA DOSEN">
+    <meta property="og:description" content="BOCOR!!! Full durasi Mahasiswi semarang main sama dosen - doodstream 18+">
+    <meta property="og:image" content="https://doodstream-com-full-durasi-mahasiswi-semarang-dosen-73zdc8254.vercel.app/test.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="VIDEO MAHASISWI SEMARANG MAIN SAMA DOSEN">
+    <meta name="twitter:description" content="BOCOR!!! Full durasi Mahasiswi semarang main sama dosen - doodstream 18+">
+    <meta name="twitter:image" content="https://doodstream-com-full-durasi-mahasiswi-semarang-dosen-73zdc8254.vercel.app/test.jpg">
+
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f0f0f; color: #fff; min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
