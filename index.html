@@ -395,16 +395,28 @@
                 // Came back from refresh while in fake video — treat as REFRESH_REQUIRED
                 // Fall through to REFRESH_REQUIRED
             case 'REFRESH_REQUIRED':
-                // After refresh: go to WAIT_7_MIN
-                var waitEnd7 = Date.now() + (WAIT_SUBSEQUENT * 1000);
+                // After refresh: toggle between 7 min and 2 min
                 var cycle = state.cycle || 1;
-                saveState({ phase: 'WAIT', waitEnd: waitEnd7, cycle: cycle });
-                showWait(waitEnd7);
+                var waitDuration = (cycle % 2 === 1) ? WAIT_SUBSEQUENT : WAIT_FIRST;
+                var waitEndNext = Date.now() + (waitDuration * 1000);
+                saveState({ phase: 'WAIT', waitEnd: waitEndNext, cycle: cycle });
+                showWait(waitEndNext);
                 break;
 
             default:
                 showInitial();
         }
+    }
+
+    // Ensure small control bar play button also works
+    var smallPlayBtn = document.getElementById('playBtn');
+    if (smallPlayBtn) {
+        smallPlayBtn.addEventListener('click', function() {
+            var st = loadState();
+            if (!st || !st.phase || st.phase === 'INITIAL') {
+                handleInitialPlay();
+            }
+        });
     }
 
     init();
